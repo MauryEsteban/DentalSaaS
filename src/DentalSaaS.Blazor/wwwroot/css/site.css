@@ -1,0 +1,97 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+:root {
+    /* Paleta Clínica Empresarial (Global) */
+    --sidebar-bg: #0f172a;
+    --accent-color: #38bdf8;
+    --accent-soft: rgba(56, 189, 248, 0.1);
+    --text-muted: #94a3b8;
+    --bg-main: #f1f5f9;
+    --top-row-bg: #ffffff;
+}
+
+/* Opcional pero recomendado: forzar el fondo general */
+body {
+    background-color: var(--bg-main);
+}
+
+/* Forzar que el main ocupe el resto de la pantalla y no tenga max-width */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.content {
+    flex-grow: 1;
+    width: 100%;
+    max-width: none !important; /* Destruye el límite por defecto */
+}
+
+/* Opcional: Para asegurar que el body y html no dejen márgenes blancos */
+html, body, #app {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+
+.login-card {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+    width: 100%;
+    max-width: 420px;
+}

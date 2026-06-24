@@ -1,0 +1,38 @@
+﻿@inherits LayoutComponentBase
+@using DentalSaaS.Blazor.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <span class="me-3">Dr(a). @context.User.Identity?.Name</span>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="CerrarSesion">Cerrar Sesión</button>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login">Iniciar Sesión</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4 w-100 h-100">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private async Task CerrarSesion()
+    {
+        await AuthService.Logout();
+        ((CustomAuthStateProvider)AuthStateProvider).NotifyUserLogout();
+        NavigationManager.NavigateTo("/login");
+    }
+}

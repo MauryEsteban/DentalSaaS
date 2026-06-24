@@ -1,0 +1,79 @@
+﻿@page "/dashboard"
+@page "/"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Dashboard - DentalSaaS</PageTitle>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Bienvenido a su Clínica</h2>
+            
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body p-5 text-center">
+                    <h4 class="text-muted mb-3"><i class="fas fa-flask text-primary"></i> Entorno de Pruebas</h4>
+                    <p class="mb-4">
+                        Para probar el funcionamiento del nuevo Odontograma Interactivo con atajos de teclado, 
+                        puede generar un paciente ficticio. Esto creará el registro en la base de datos de su clínica y abrirá su ficha.
+                    </p>
+                    
+                    <button class="btn btn-success btn-lg" @onclick="CrearYRedirigir" disabled="@_isLoading">
+                        @if (_isLoading)
+                        {
+                            <span><i class="fas fa-spinner fa-spin"></i> Generando Paciente...</span>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-user-plus"></i> Generar Paciente Temporal e ir al Odontograma</span>
+                        }
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="alert alert-danger mt-3">@_error</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = false;
+    private string? _error = null;
+
+    private async Task CrearYRedirigir()
+    {
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            // Disparamos la creación en la API
+            var response = await Http.PostAsync("api/v1/Fichas/test-patient", null);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                // Obtenemos el GUID real de la base de datos
+                var fichaId = await response.Content.ReadFromJsonAsync<Guid>();
+                
+                // Viajamos a la dimensión del Odontograma
+                NavigationManager.NavigateTo($"/clinical/ficha/{fichaId}/odontograma");
+            }
+            else
+            {
+                _error = "Error al generar el paciente en la Base de Datos. Status: " + response.StatusCode;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = "Fallo de conexión con la API: " + ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

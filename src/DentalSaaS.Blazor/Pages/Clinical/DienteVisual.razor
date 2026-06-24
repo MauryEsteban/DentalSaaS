@@ -1,0 +1,27 @@
+﻿@using DentalSaaS.Blazor.Models
+@using DentalSaaS.Blazor.Models.Enums
+
+<div class="diente-wrapper">
+    <div class="pieza-label">@Piezana</div>
+    <svg viewBox="0 0 100 100" class="svg-diente">
+        <polygon points="10,10 90,10 68,28 32,28" class="cara-dental @GetClassForSuperficie(SuperficieDental.Vestibular)" />
+        <polygon points="90,10 90,90 72,68 72,32" class="cara-dental @GetClassForSuperficie(SuperficieDental.Distal)" />
+        <polygon points="10,90 90,90 68,72 32,72" class="cara-dental @GetClassForSuperficie(SuperficieDental.PalatinoLingual)" />
+        <polygon points="10,10 10,90 28,68 28,32" class="cara-dental @GetClassForSuperficie(SuperficieDental.Mesial)" />
+        <rect x="32" y="32" width="36" height="36" rx="8" class="cara-dental @GetClassForSuperficie(SuperficieDental.Oclusal)" />
+    </svg>
+</div>
+
+@code {
+    [Parameter] public int Piezana { get; set; }
+    [Parameter] public List<HallazgoVisualDto> Hallazgos { get; set; } = new();
+
+    private string GetClassForSuperficie(SuperficieDental superficieBuscada)
+    {
+        var css = "";
+        var hallazgosEnCara = Hallazgos.Where(h => h.Superficies.HasFlag(superficieBuscada)).ToList();
+        if (hallazgosEnCara.Any(h => h.Tipo == HerramientaClinica.Caries)) css += " has-caries";
+        if (hallazgosEnCara.Any(h => h.Tipo == HerramientaClinica.Resina)) css += " has-resina";
+        return css;
+    }
+}

@@ -1,0 +1,100 @@
+﻿/* ZONA DEL ODONTOGRAMA (Ocupa todo el ancho) */
+.odontograma-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: center;
+    padding: 30px;
+    background-color: white;
+    border-radius: 12px;
+}
+
+.arcada { display: flex; gap: 0.8rem; flex-wrap: nowrap; }
+.cuadrante { display: flex; gap: 0.15rem; flex-wrap: nowrap; }
+
+.divider-h { border-bottom: 2px dashed #dee2e6; width: 100%; }
+.divider-v { border-left: 2px dashed #dee2e6; margin: 0 5px; }
+
+/* --- RESPONSIVIDAD DE CUADRÍCULA DENTAL --- */
+@media (max-width: 1100px) {
+    .gap-1 { gap: 0.1rem !important; }
+    .gap-3 { gap: 0.5rem !important; }
+    .odontograma-workspace { padding: 15px; }
+}
+
+@media (max-width: 900px) {
+    .arcada { gap: 0.2rem; }
+    .divider-v { margin: 0; border: none; }
+}
+
+/* --- TARJETAS VISUALES DE DIAGNÓSTICO PARA DEDOS (TOUCH TARGETS) --- */
+.diag-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #6c757d;
+    min-height: 80px; /* Tamaño táctil premium Apple */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.diag-card:active {
+    transform: scale(0.95);
+    background-color: #f8f9fa;
+}
+
+.diag-card i { font-size: 1.5rem; margin-bottom: 5px; }
+
+/* Botones de configuración táctil (48px de alto regla de oro) */
+.depth-btn, .btn-lg-touch {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 600;
+    touch-action: manipulation; /* Evita doble-tap zoom */
+}
+
+/* ESTADOS ACTIVOS --- */
+.active-sano { border-color: #198754; background: #f8fff9; color: #198754; }
+.active-caries { border-color: #dc3545; background: #fff5f5; color: #dc3545; }
+.active-resina { border-color: #0d6efd; background: #f0f7ff; color: #0d6efd; }
+.active-extraccion { border-color: #fd7e14; background: #fff8f0; color: #fd7e14; }
+.active-ausente { border-color: #6c757d; background: #f8f9fa; color: #495057; }
+
+/* Animación de Revelación Progresiva */
+.reveal-section { animation: slideDownFade 0.2s ease-out forwards; }
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ESTILOS DEL MODAL FOCAL --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    z-index: 1040;
+    backdrop-filter: blur(2px); /* Efecto cristal para blindar el foco */
+}
+
+.modal-dialog.modal-focused {
+    z-index: 1050;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-content.focused-content {
+    border: none;
+    border-radius: 12px;
+}

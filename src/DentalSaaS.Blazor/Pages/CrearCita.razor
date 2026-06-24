@@ -1,0 +1,87 @@
+@page "/crear-cita"
+@using DentalSaaS.Blazor.Models
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-dark text-white d-flex align-items-center">
+            <h3 class="mb-0">Agendar Nueva Cita</h3>
+        </div>
+        <div class="card-body p-4">
+            <EditForm Model="@cita" OnValidSubmit="GuardarCita">
+                <DataAnnotationsValidator />
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">ID del Paciente</label>
+                        <InputText @bind-Value="pacienteString" class="form-control" placeholder="00000000-0000-0000-0000-000000000000" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">ID del Odontólogo</label>
+                        <InputText @bind-Value="odontologoString" class="form-control" placeholder="00000000-0000-0000-0000-000000000000" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Fecha de Inicio</label>
+                        <input type="datetime-local" @bind="cita.FechaInicio" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Fecha de Fin</label>
+                        <input type="datetime-local" @bind="cita.FechaFin" class="form-control" />
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(mensajeError))
+                {
+                    <div class="alert alert-warning mt-3">@mensajeError</div>
+                }
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg" disabled="@cargando">
+                        @(cargando ? "Procesando..." : "Confirmar Cita")
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CitaCreateDto cita = new();
+    private string pacienteString = Guid.Empty.ToString();
+    private string odontologoString = Guid.Empty.ToString();
+    private bool cargando = false;
+    private string? mensajeError;
+
+    private async Task GuardarCita()
+    {
+        cargando = true;
+        mensajeError = null;
+
+        // Convertimos los strings de vuelta a Guid antes de enviar
+        if (Guid.TryParse(pacienteString, out var pId) && Guid.TryParse(odontologoString, out var oId))
+        {
+            cita.PacienteId = pId;
+            cita.OdontologoId = oId;
+
+            try
+            {
+                var response = await Http.PostAsJsonAsync("api/v1/Citas", cita);
+                if (response.IsSuccessStatusCode) Navigation.NavigateTo("/");
+                else mensajeError = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex) { mensajeError = ex.Message; }
+        }
+        else
+        {
+            mensajeError = "Los IDs ingresados no tienen un formato de GUID válido.";
+        }
+        
+        cargando = false;
+    }
+}

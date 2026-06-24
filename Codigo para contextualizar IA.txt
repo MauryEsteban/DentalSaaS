@@ -1,0 +1,22 @@
+$outputFile = "DentalSaaS_Context.txt"
+$excludeFolders = @("bin", "obj", ".vs", ".git", "Migrations")
+
+Clear-Content $outputFile -ErrorAction SilentlyContinue
+
+Get-ChildItem -Recurse -Filter *.cs | Where-Object {
+    $path = $_.FullName
+    $exclude = $false
+    foreach ($folder in $excludeFolders) {
+        if ($path -match "\\$folder\\") {
+            $exclude = $true
+            break
+        }
+    }
+    if (-not $exclude) { return $true }
+} | ForEach-Object {
+    Add-Content $outputFile "=== File: $($_.FullName.Replace($PWD.Path + '\', '')) ==="
+    Add-Content $outputFile (Get-Content $_.FullName -Raw)
+    Add-Content $outputFile "`n`n"
+}
+
+Write-Host "Contexto empaquetado en $outputFile. Súbelo o pégalo en el chat."

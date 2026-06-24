@@ -1,0 +1,122 @@
+﻿@page "/login"
+@layout EmptyLayout
+@using DentalSaaS.Blazor.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Login - DentalSaaS</PageTitle>
+
+<div class="login-container">
+    <h3 class="text-center mb-4">Ingreso al Sistema Clínico</h3>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    @if (!_fase2Activa)
+    {
+        <EditForm Model="@_loginModel" OnValidSubmit="HandleLoginFase1">
+            <DataAnnotationsValidator />
+
+            <div class="form-group mb-3">
+                <label>Usuario</label>
+                <InputText @bind-Value="_loginModel.Usuario" class="form-control" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label>Contraseña</label>
+                <InputText @bind-Value="_loginModel.Password" type="password" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span>Autenticando...</span>
+                }
+                else
+                {
+                    <span>Ingresar</span>
+                }
+            </button>
+        </EditForm>
+    }
+    else
+    {
+        <h5 class="text-center mt-3 mb-3">Seleccione su Clínica</h5>
+        <div class="list-group">
+            @foreach (var tenant in _tenantsDisponibles)
+            {
+                <button type="button" class="list-group-item list-group-item-action" 
+                        @onclick="() => HandleLoginFase2(tenant.TenantId)" disabled="@_isLoading">
+                    <strong>@tenant.NombreClinica</strong>
+                    <br/><small class="text-muted">ID: @tenant.TenantId</small>
+                </button>
+            }
+        </div>
+        <button class="btn btn-link mt-3 w-100" @onclick="Volver">Volver</button>
+    }
+</div>
+
+@code {
+    private LoginViewModel _loginModel = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    // Estado para la Arquitectura Multi-Tenant
+    private bool _fase2Activa = false;
+    private List<TenantDto> _tenantsDisponibles = new();
+
+    private async Task HandleLoginFase1()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        var response = await AuthService.LoginFase1(_loginModel.Usuario, _loginModel.Password);
+
+        if (response != null && response.RequireTenantSelection)
+        {
+            _tenantsDisponibles = response.AvailableTenants;
+            _fase2Activa = true; // Cambiamos la UI a Fase 2
+        }
+        else
+        {
+            _errorMessage = "Credenciales inválidas o error de conexión.";
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task HandleLoginFase2(string tenantId)
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        var token = await AuthService.LoginFase2(_loginModel.Usuario, tenantId);
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Forzamos la notificación al StateProvider con el token Scoped
+            ((CustomAuthStateProvider)AuthStateProvider).NotifyUserLogin(token);
+            NavigationManager.NavigateTo("/dashboard");
+        }
+        else
+        {
+            _errorMessage = "Error de autorización al intentar ingresar a la clínica.";
+            _isLoading = false;
+        }
+    }
+
+    private void Volver()
+    {
+        _fase2Activa = false;
+        _errorMessage = null;
+    }
+
+    private class LoginViewModel
+    {
+        public string Usuario { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

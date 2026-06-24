@@ -1,0 +1,324 @@
+﻿@page "/clinical/ficha/{FichaId:guid}/odontograma"
+@using DentalSaaS.Blazor.Utils
+@using DentalSaaS.Blazor.Models
+@using DentalSaaS.Blazor.Models.Enums
+@implements IDisposable
+
+<PageTitle>Odontograma Premium (Touch) - DentalSaaS</PageTitle>
+
+<div class="container-fluid mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+        <h3>Odontograma Clínico Evolutivo</h3>
+        <div class="d-flex align-items-center gap-3">
+            @if (_isSaving)
+            {
+                <span class="text-warning fw-bold"><i class="fas fa-sync fa-spin"></i> Sincronizando...</span>
+            }
+            else if (_lastSaved.HasValue)
+            {
+                <span class="text-success fw-bold"><i class="fas fa-check-circle"></i> Sincronizado</span>
+            }
+            <button class="btn btn-primary btn-sm">Finalizar Evolución</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="odontograma-workspace shadow-sm border p-3 p-md-4 bg-white" style="border-radius: 12px;">
+                
+                <div class="arcada justify-content-center">
+                    <div class="cuadrante">
+                        @foreach (var pieza in _cuadrante1.Reverse())
+                        {
+                            <div @onclick="() => SeleccionarPieza(pieza)" 
+                                 class="p-1 @(_piezaSeleccionada == pieza ? "bg-light rounded border-primary border shadow-sm" : "")" 
+                                 style="cursor: pointer;">
+                                <DienteVisual Piezana="pieza" Hallazgos="@GetHallazgosForPieza(pieza)" />
+                            </div>
+                        }
+                    </div>
+                    <div class="divider-v"></div>
+                    <div class="cuadrante">
+                        @foreach (var pieza in _cuadrante2)
+                        {
+                            <div @onclick="() => SeleccionarPieza(pieza)" 
+                                 class="p-1 @(_piezaSeleccionada == pieza ? "bg-light rounded border-primary border shadow-sm" : "")" 
+                                 style="cursor: pointer;">
+                                <DienteVisual Piezana="pieza" Hallazgos="@GetHallazgosForPieza(pieza)" />
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="divider-h my-3 my-md-4"></div>
+
+                <div class="arcada justify-content-center">
+                    <div class="cuadrante">
+                        @foreach (var pieza in _cuadrante4.Reverse())
+                        {
+                            <div @onclick="() => SeleccionarPieza(pieza)" 
+                                 class="p-1 @(_piezaSeleccionada == pieza ? "bg-light rounded border-primary border shadow-sm" : "")" 
+                                 style="cursor: pointer;">
+                                <DienteVisual Piezana="pieza" Hallazgos="@GetHallazgosForPieza(pieza)" />
+                            </div>
+                        }
+                    </div>
+                    <div class="divider-v"></div>
+                    <div class="cuadrante">
+                        @foreach (var pieza in _cuadrante3)
+                        {
+                            <div @onclick="() => SeleccionarPieza(pieza)" 
+                                 class="p-1 @(_piezaSeleccionada == pieza ? "bg-light rounded border-primary border shadow-sm" : "")" 
+                                 style="cursor: pointer;">
+                                <DienteVisual Piezana="pieza" Hallazgos="@GetHallazgosForPieza(pieza)" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_piezaSeleccionada.HasValue)
+{
+    <div class="modal-overlay reveal-section" @onclick="CerrarModal"></div>
+
+    <div class="modal show reveal-section" tabindex="-1" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-focused">
+            <div class="modal-content focused-content shadow-lg border-0">
+                <div class="modal-header bg-dark text-white" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title fs-4 fw-bold">
+                        <i class="fas fa-tooth me-2"></i> Diagnóstico: Pieza @_piezaSeleccionada.Value
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @{
+                        var hallazgoActual = GetHallazgoActual(_piezaSeleccionada.Value);
+                    }
+
+                    <h6 class="fw-bold mb-3 text-secondary">1. Condición Clínica</h6>
+                    <div class="row row-cols-2 row-cols-sm-4 g-2 mb-4">
+                        <div class="col">
+                            <div class="diag-card @(hallazgoActual.Tipo == HerramientaClinica.Puntero ? "active-sano" : "")" 
+                                 @onclick="() => SetTipo(hallazgoActual, HerramientaClinica.Puntero)">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="fw-bold">Sano</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="diag-card @(hallazgoActual.Tipo == HerramientaClinica.Caries ? "active-caries" : "")" 
+                                 @onclick="() => SetTipo(hallazgoActual, HerramientaClinica.Caries)">
+                                <i class="fas fa-virus"></i>
+                                <span class="fw-bold">Caries</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="diag-card @(hallazgoActual.Tipo == HerramientaClinica.Resina ? "active-resina" : "")" 
+                                 @onclick="() => SetTipo(hallazgoActual, HerramientaClinica.Resina)">
+                                <i class="fas fa-fill-drip"></i>
+                                <span class="fw-bold">Resina</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="diag-card @(hallazgoActual.Tipo == HerramientaClinica.ExtraccionIndicada ? "active-extraccion" : "")" 
+                                 @onclick="() => SetTipo(hallazgoActual, HerramientaClinica.ExtraccionIndicada)">
+                                <i class="fas fa-tooth text-decoration-line-through"></i>
+                                <span class="fw-bold text-wrap text-small">Extraer</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (hallazgoActual.Tipo == HerramientaClinica.Caries || hallazgoActual.Tipo == HerramientaClinica.Resina)
+                    {
+                        <div class="reveal-section border-top pt-4">
+                            <h6 class="fw-bold mb-3 text-secondary">2. Nivel de Lesión (Profundidad)</h6>
+                            <div class="row row-cols-3 row-cols-sm-5 g-2">
+                                <div class="col">
+                                <button class="btn btn-lg-touch depth-btn @(hallazgoActual.Profundidad == ProfundidadCaries.Esmalte ? "btn-warning text-dark border-warning shadow-sm" : "btn-outline-secondary")" 
+                                        @onclick="() => SetProfundidad(hallazgoActual, ProfundidadCaries.Esmalte)">
+                                    Esmalte (Superficial)
+                                </button>
+                                </div>
+                                <div class="col">
+                                <button class="btn btn-lg-touch depth-btn @(hallazgoActual.Profundidad == ProfundidadCaries.Dentina ? "btn-orange text-white border-orange shadow-sm" : "btn-outline-secondary")" 
+                                        @onclick="() => SetProfundidad(hallazgoActual, ProfundidadCaries.Dentina)" style="@(hallazgoActual.Profundidad == ProfundidadCaries.Dentina ? "background-color: #fd7e14;" : "")">
+                                    Dentina (Media)
+                                </button>
+                                </div>
+                                <div class="col">
+                                <button class="btn btn-lg-touch depth-btn @(hallazgoActual.Profundidad == ProfundidadCaries.Pulpar ? "btn-danger shadow-sm" : "btn-outline-secondary")" 
+                                        @onclick="() => SetProfundidad(hallazgoActual, ProfundidadCaries.Pulpar)">
+                                    Pulpar (Compromiso Profundo)
+                                </button>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        @if (hallazgoActual.Profundidad != ProfundidadCaries.NoAplica)
+                        {
+                            <div class="reveal-section border-top pt-4">
+                                <h6 class="fw-bold mb-3 text-secondary">3. Caras Afectadas (Combine)</h6>
+                                <div class="row row-cols-3 row-cols-sm-5 g-2">
+                                    <div class="col">
+                                        <button class="btn btn-lg-touch w-100 @(HasFlag(hallazgoActual, SuperficieDental.Oclusal) ? "btn-primary shadow-sm" : "btn-outline-secondary bg-light")" 
+                                                @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.Oclusal)">Ocl (O)</button>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-lg-touch w-100 @(HasFlag(hallazgoActual, SuperficieDental.Mesial) ? "btn-primary shadow-sm" : "btn-outline-secondary bg-light")" 
+                                                @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.Mesial)">Mes (M)</button>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-lg-touch w-100 @(HasFlag(hallazgoActual, SuperficieDental.Distal) ? "btn-primary shadow-sm" : "btn-outline-secondary bg-light")" 
+                                                @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.Distal)">Dis (D)</button>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-lg-touch w-100 @(HasFlag(hallazgoActual, SuperficieDental.Vestibular) ? "btn-primary shadow-sm" : "btn-outline-secondary bg-light")" 
+                                                @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.Vestibular)">Ves (V)</button>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-lg-touch w-100 @(HasFlag(hallazgoActual, SuperficieDental.PalatinoLingual) ? "btn-primary shadow-sm" : "btn-outline-secondary bg-light")" 
+                                                @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.PalatinoLingual)">Pal/Lin</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-lg-touch w-100 mt-2 @(HasFlag(hallazgoActual, SuperficieDental.Cervical) ? "btn-danger shadow-sm fw-bold" : "btn-outline-danger")" 
+                                        @onclick="() => ToggleSuperficie(hallazgoActual, SuperficieDental.Cervical)">
+                                    <i class="fas fa-exclamation-triangle me-2"></i> Compromiso Cervical (Cuello)
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="modal-footer bg-light p-3" style="border-radius: 0 0 12px 12px;">
+                    <div class="row w-100 g-2">
+                        <div class="col-6">
+                            <button class="btn btn-light text-danger w-100 fw-bold border" @onclick="LimpiarPieza">
+                                <i class="fas fa-eraser me-2"></i> Resetear Diente
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-success w-100 fw-bold" @onclick="CerrarModal">
+                                <i class="fas fa-check-circle me-2"></i> Confirmar y Seguir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid FichaId { get; set; }
+    
+    private ActionDebouncer _debouncer = new(1000);
+    private bool _isSaving = false;
+    private DateTime? _lastSaved;
+
+    private int? _piezaSeleccionada = null;
+    
+    // Diccionario de Pieza -> Su único hallazgo compuesto
+    private Dictionary<int, HallazgoVisualDto> _estadoOdontograma = new();
+
+    private readonly int[] _cuadrante1 = { 11, 12, 13, 14, 15, 16, 17, 18 };
+    private readonly int[] _cuadrante2 = { 21, 22, 23, 24, 25, 26, 27, 28 };
+    private readonly int[] _cuadrante3 = { 31, 32, 33, 34, 35, 36, 37, 38 };
+    private readonly int[] _cuadrante4 = { 41, 42, 43, 44, 45, 46, 47, 48 };
+
+    private void SeleccionarPieza(int pieza)
+    {
+        _piezaSeleccionada = pieza;
+    }
+
+    private void CerrarModal()
+    {
+        _piezaSeleccionada = null;
+        StateHasChanged(); // Forzamos repintado para blindar el overlay
+    }
+
+    private List<HallazgoVisualDto> GetHallazgosForPieza(int pieza)
+    {
+        if (_estadoOdontograma.TryGetValue(pieza, out var hallazgo))
+        {
+            if (hallazgo.Tipo != HerramientaClinica.Puntero)
+                return new List<HallazgoVisualDto> { hallazgo };
+        }
+        return new List<HallazgoVisualDto>();
+    }
+
+    private HallazgoVisualDto GetHallazgoActual(int pieza)
+    {
+        if (!_estadoOdontograma.ContainsKey(pieza))
+        {
+            _estadoOdontograma[pieza] = new HallazgoVisualDto { Tipo = HerramientaClinica.Puntero };
+        }
+        return _estadoOdontograma[pieza];
+    }
+
+    // Lógica de Negocio UI: Al cambiar el Tipo, reseteamos los hijos si es necesario
+    private void SetTipo(HallazgoVisualDto hallazgo, HerramientaClinica tipo)
+    {
+        hallazgo.Tipo = tipo;
+        
+        // Si no es Caries o Resina, borramos la profundidad y las caras
+        if (tipo != HerramientaClinica.Caries && tipo != HerramientaClinica.Resina)
+        {
+            hallazgo.Profundidad = ProfundidadCaries.NoAplica;
+            hallazgo.Superficies = SuperficieDental.Ninguna;
+        }
+        TriggerGuardado();
+    }
+
+    private void SetProfundidad(HallazgoVisualDto hallazgo, ProfundidadCaries prof)
+    {
+        hallazgo.Profundidad = prof;
+        TriggerGuardado();
+    }
+
+    private bool HasFlag(HallazgoVisualDto hallazgo, SuperficieDental flag)
+    {
+        return hallazgo.Superficies.HasFlag(flag);
+    }
+
+    private void ToggleSuperficie(HallazgoVisualDto hallazgo, SuperficieDental flag)
+    {
+        if (HasFlag(hallazgo, flag))
+            hallazgo.Superficies &= ~flag; 
+        else
+            hallazgo.Superficies |= flag;  
+
+        TriggerGuardado();
+    }
+
+    private void LimpiarPieza()
+    {
+        if (_piezaSeleccionada.HasValue)
+        {
+            _estadoOdontograma.Remove(_piezaSeleccionada.Value);
+            TriggerGuardado();
+        }
+    }
+
+    private void TriggerGuardado()
+    {
+        _isSaving = true;
+        StateHasChanged();
+        
+        _debouncer.Invoke(async () =>
+        {
+            // Aquí en un futuro irá la llamada a la API
+            await Task.Delay(400); 
+            _isSaving = false;
+            _lastSaved = DateTime.Now;
+            await InvokeAsync(StateHasChanged); 
+        });
+    }
+
+    public void Dispose()
+    {
+        _debouncer?.Dispose();
+    }
+}

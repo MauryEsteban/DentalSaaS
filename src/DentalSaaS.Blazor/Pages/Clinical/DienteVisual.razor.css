@@ -1,0 +1,57 @@
+﻿/* Contenedor Fluido con clamp() */
+.diente-wrapper {
+    /* Mínimo 30px, preferido 4% de la vista, Máximo 55px */
+    width: clamp(30px, 4vw, 55px);
+    height: clamp(30px, 4vw, 55px);
+    position: relative;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* En tablets/touch, quitamos el hover de escalado, usamos :active */
+.diente-wrapper:active {
+    transform: scale(0.95);
+}
+
+.svg-diente {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.06));
+}
+
+.cara-dental {
+    fill: #ffffff;
+    stroke: #dce0e5;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    transition: all 0.15s ease-in-out;
+}
+
+/* Feedback táctil suave */
+.cara-dental:active {
+    fill: #f1f3f5;
+}
+
+/* --- PINTURA CLINICA --- */
+.has-caries {
+    fill: #ff6b6b !important;
+    stroke: #c92a2a !important;
+}
+
+.has-resina {
+    fill: #4dabf7 !important;
+    stroke: #1864ab !important;
+}
+
+/* Label del número de pieza escalable */
+.pieza-label {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    /* Fuente fluida también */
+    font-size: clamp(0.65rem, 1vw, 0.85rem);
+    color: #495057;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
